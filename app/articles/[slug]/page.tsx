@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { type Article, getAllArticles, getArticle } from "@/lib/api";
+import { getArticleBySlug, getArticles } from "@/lib/contentful/queries";
 import { getFormattedDate } from "@/lib/utils";
 import { Markdown } from "@/lib/markdown";
 import { ContentfulImage } from "@/components/contentful-image";
@@ -8,9 +8,9 @@ import { draftMode } from "next/headers";
 import { Suspense } from "react";
 
 export async function generateStaticParams() {
-  const allArticles = await getAllArticles();
+  const allArticles = await getArticles();
 
-  return allArticles.map((article: Article) => ({
+  return allArticles.map((article) => ({
     slug: article.slug,
   }));
 }
@@ -45,7 +45,7 @@ export default async function KnowledgeArticlePage(props: {
 async function ArticleContent(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const isDraft = (await draftMode()).isEnabled;
-  const article = await getArticle(params.slug, isDraft);
+  const article = await getArticleBySlug(params.slug, isDraft);
 
   if (!article) {
     notFound();
@@ -81,7 +81,7 @@ async function ArticleContent(props: { params: Promise<{ slug: string }> }) {
 
       <div className="relative w-full aspect-[2/1] mb-12 overflow-hidden bg-black/5 border border-black/5 shadow-sm">
         <ContentfulImage
-          src={articleImage?.url ?? ""}
+          src={articleImage?.fields?.file?.url ?? ""}
           alt={title}
           fill
           className="object-cover"
@@ -109,9 +109,9 @@ async function ArticleContent(props: { params: Promise<{ slug: string }> }) {
 async function SuggestedArticle(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const currentSlug = params.slug;
-  const allArticles = await getAllArticles();
+  const allArticles = await getArticles();
   const currentArticleIndex = allArticles.findIndex(
-    (a: Article) => a.slug === currentSlug
+    (a) => a.slug === currentSlug
   );
 
   if (currentArticleIndex === -1 || allArticles.length < 2) {
@@ -137,7 +137,7 @@ async function SuggestedArticle(props: { params: Promise<{ slug: string }> }) {
         <div className="flex flex-col gap-6 p-8">
           <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">
             <ContentfulImage
-              src={articleImage?.url ?? ""}
+              src={articleImage?.fields?.file?.url ?? ""}
               alt={title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
