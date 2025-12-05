@@ -1,4 +1,4 @@
-import { getAllArticles } from "../lib/api";
+import { getAllArticles, type Article } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -7,7 +7,7 @@ export default async function Home() {
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
-      {articles.map((article) => (
+      {articles.map((article: Article) => (
         <Link key={article.sys.id} href={`/articles/${article.slug}`}>
           <article className="group mb-8 bg-white border border-black/5 overflow-hidden shadow-sm hover:shadow-xl hover:border-black/10 transition-all duration-300">
             <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
+import { NextResponse } from "next/server";
 
-export async function POST(request) {
+export async function POST(request: Request) {
   const requestHeaders = new Headers(request.headers);
   const secret = requestHeaders.get("x-vercel-reval-key");
 
@@ -9,7 +9,7 @@ export async function POST(request) {
     return NextResponse.json({ message: "Invalid secret" }, { status: 401 });
   }
 
-  revalidateTag("articles");
+  revalidateTag("articles", "max");
 
   return NextResponse.json({ revalidated: true, now: Date.now() });
 }

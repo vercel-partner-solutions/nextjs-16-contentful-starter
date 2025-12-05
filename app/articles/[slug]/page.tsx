@@ -1,19 +1,21 @@
-import { getAllArticles, getArticle } from "../../../lib/api";
-import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { draftMode } from "next/headers";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { type Article, getAllArticles, getArticle } from "@/lib/api";
+import Image from "next/image";
+import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 
 export async function generateStaticParams() {
   const allArticles = await getAllArticles();
 
-  return allArticles.map((article) => ({
+  return allArticles.map((article: Article) => ({
     slug: article.slug,
   }));
 }
 
-export default async function KnowledgeArticlePage(props) {
+export default async function KnowledgeArticlePage(props: {
+  params: Promise<{ slug: string }>;
+}) {
   const params = await props.params;
   const { isEnabled } = await draftMode();
   const article = await getArticle(params.slug, isEnabled);
@@ -22,7 +24,9 @@ export default async function KnowledgeArticlePage(props) {
     notFound();
   }
 
-  const formattedDate = article.date ? new Date(article.date).toDateString() : null;
+  const formattedDate = article.date
+    ? new Date(article.date).toDateString()
+    : null;
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
@@ -84,12 +88,13 @@ export default async function KnowledgeArticlePage(props) {
   );
 }
 
-async function SuggestedArticle({ currentSlug }) {
+async function SuggestedArticle({ currentSlug }: { currentSlug: string }) {
   const allArticles = await getAllArticles();
-  const otherArticles = allArticles.filter(a => a.slug !== currentSlug);
-  const suggestedArticle = otherArticles.length > 0
-    ? otherArticles[Math.floor(Math.random() * otherArticles.length)]
-    : null;
+  const otherArticles = allArticles.filter(
+    (a: Article) => a.slug !== currentSlug
+  );
+
+  const suggestedArticle = otherArticles.length > 0 ? otherArticles[0] : null;
 
   if (!suggestedArticle) {
     return null;
