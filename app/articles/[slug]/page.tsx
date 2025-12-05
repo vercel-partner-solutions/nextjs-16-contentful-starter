@@ -99,19 +99,17 @@ export default async function KnowledgeArticlePage(props: {
 
 async function SuggestedArticle({ currentSlug }: { currentSlug: string }) {
   const allArticles = await getAllArticles();
-  const otherArticles = allArticles.filter(
-    (a: Article) => a.slug !== currentSlug
+  const currentArticleIndex = allArticles.findIndex(
+    (a: Article) => a.slug === currentSlug
   );
 
-  // Use the current slug to deterministically select a suggested article
-  // This provides variety (different articles suggest different content) while being pure
-  const slugHash = currentSlug
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  if (currentArticleIndex === -1 || allArticles.length < 2) {
+    return null;
+  }
+
+  // Wrap around to the start if we're at the end
   const suggestedArticle =
-    otherArticles.length > 0
-      ? otherArticles[slugHash % otherArticles.length]
-      : null;
+    allArticles[(currentArticleIndex + 1) % allArticles.length];
 
   if (!suggestedArticle) {
     return null;
