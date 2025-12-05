@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type Article, getAllArticles, getArticle } from "@/lib/api";
 import Image from "next/image";
-import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { getFormattedDate } from "@/lib/utils";
+import { Markdown } from "@/lib/markdown";
 
 export async function generateStaticParams() {
   const allArticles = await getAllArticles();
@@ -71,12 +71,12 @@ export default async function KnowledgeArticlePage(props: {
         </div>
 
         <div
-          className="prose prose-lg max-w-none"
+          className="max-w-none"
           style={{
             color: "rgb(0 0 0 / 0.8)",
           }}
         >
-          {documentToReactComponents(details.json)}
+          <Markdown content={details} />
         </div>
       </article>
 
