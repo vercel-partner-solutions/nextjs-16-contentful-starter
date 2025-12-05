@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { type Article, getAllArticles, getArticle } from "@/lib/api";
 import Image from "next/image";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
+import { getFormattedDate } from "@/lib/utils";
 
 export async function generateStaticParams() {
   const allArticles = await getAllArticles();
@@ -24,16 +25,24 @@ export default async function KnowledgeArticlePage(props: {
     notFound();
   }
 
-  const formattedDate = article.date
-    ? new Date(article.date).toDateString()
-    : null;
+  const {
+    title,
+    categoryName,
+    authorName,
+    date,
+    summary,
+    details,
+    articleImage,
+    slug,
+  } = article;
+  const formattedDate = getFormattedDate(date);
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
       <article>
         <div className="flex items-center gap-4 mb-8">
           <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-black text-white">
-            {article.categoryName}
+            {categoryName}
           </span>
           {formattedDate && (
             <time className="text-sm text-black/50">{formattedDate}</time>
@@ -41,15 +50,15 @@ export default async function KnowledgeArticlePage(props: {
         </div>
 
         <h1 className="text-5xl font-semibold text-black mb-6 text-balance leading-tight">
-          {article.title}
+          {title}
         </h1>
 
-        <p className="text-lg text-black/60 mb-12">By {article.authorName}</p>
+        <p className="text-lg text-black/60 mb-12">By {authorName}</p>
 
         <div className="relative w-full aspect-[2/1] mb-12 overflow-hidden bg-black/5 border border-black/5 shadow-sm">
           <Image
-            src={article.articleImage?.url || "/placeholder.svg"}
-            alt={article.title}
+            src={articleImage?.url || "/placeholder.svg"}
+            alt={title}
             fill
             className="object-cover"
           />
@@ -57,7 +66,7 @@ export default async function KnowledgeArticlePage(props: {
 
         <div className="mb-12 pb-12 border-b border-black/10">
           <p className="text-xl text-black/80 leading-relaxed text-pretty font-medium">
-            {article.summary}
+            {summary}
           </p>
         </div>
 
@@ -67,11 +76,11 @@ export default async function KnowledgeArticlePage(props: {
             color: "rgb(0 0 0 / 0.8)",
           }}
         >
-          {documentToReactComponents(article.details.json)}
+          {documentToReactComponents(details.json)}
         </div>
       </article>
 
-      <SuggestedArticle currentSlug={article.slug} />
+      <SuggestedArticle currentSlug={slug} />
 
       <div className="mt-16 pt-12 border-t border-black/10">
         <Link
@@ -94,24 +103,34 @@ async function SuggestedArticle({ currentSlug }: { currentSlug: string }) {
     (a: Article) => a.slug !== currentSlug
   );
 
-  const suggestedArticle = otherArticles.length > 0 ? otherArticles[0] : null;
+  // Use the current slug to deterministically select a suggested article
+  // This provides variety (different articles suggest different content) while being pure
+  const slugHash = currentSlug
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const suggestedArticle =
+    otherArticles.length > 0
+      ? otherArticles[slugHash % otherArticles.length]
+      : null;
 
   if (!suggestedArticle) {
     return null;
   }
+  const { title, categoryName, authorName, summary, articleImage, slug } =
+    suggestedArticle;
 
   return (
     <section className="mt-24 pt-16 border-t border-black/10">
       <h2 className="text-3xl font-semibold text-black mb-12">For you</h2>
       <Link
-        href={`/articles/${suggestedArticle.slug}`}
+        href={`/articles/${slug}`}
         className="group block border border-black/5 overflow-hidden bg-white hover:shadow-lg transition-all duration-300"
       >
         <div className="flex flex-col gap-6 p-8">
           <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">
             <Image
-              src={suggestedArticle.articleImage?.url || "/placeholder.svg"}
-              alt={suggestedArticle.title}
+              src={articleImage?.url || "/placeholder.svg"}
+              alt={title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
@@ -119,17 +138,15 @@ async function SuggestedArticle({ currentSlug }: { currentSlug: string }) {
 
           <div>
             <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-black text-white mb-4">
-              {suggestedArticle.categoryName}
+              {categoryName}
             </span>
             <h3 className="text-2xl font-semibold text-black mb-3 group-hover:text-black/70 transition-colors">
-              {suggestedArticle.title}
+              {title}
             </h3>
             <p className="text-base text-black/60 mb-4 leading-relaxed">
-              {suggestedArticle.summary}
+              {summary}
             </p>
-            <p className="text-sm text-black/50">
-              By {suggestedArticle.authorName}
-            </p>
+            <p className="text-sm text-black/50">By {authorName}</p>
           </div>
         </div>
       </Link>
