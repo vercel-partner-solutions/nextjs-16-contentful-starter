@@ -1,8 +1,9 @@
-export const getFormattedDate = (dateString: string): string | undefined => {
+export const getFormattedDate = (dateString: string): string | null => {
   const date = new Date(dateString);
 
   if (isNaN(date.getTime())) {
-    return;
+    console.warn(`Invalid date string provided: ${dateString}`);
+    return null;
   }
 
   return date.toLocaleDateString("en-US", {
