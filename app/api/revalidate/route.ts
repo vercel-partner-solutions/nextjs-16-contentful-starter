@@ -9,8 +9,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid secret" }, { status: 401 });
   }
 
-  revalidateTag("articles", "max");
-  console.log(`Revalidated articles`);
+  const body = await request.json();
 
-  return NextResponse.json({ success: true }, { status: 200 });
+  const { entityId } = body;
+
+  revalidateTag(entityId, "max");
+
+  console.log(`Revalidated entity: ${entityId}`);
+  return NextResponse.json({ revalidated: true, entityId, now: Date.now() });
 }
