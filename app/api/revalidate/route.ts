@@ -10,7 +10,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid secret" }, { status: 401 });
   }
 
-  revalidateTag("articles", "max");
+  const body = await request.json();
 
-  return NextResponse.json({ revalidated: true, now: Date.now() });
+  const { entityId } = body;
+
+  revalidateTag(entityId, "max");
+
+  console.log(`Revalidated entity: ${entityId}`);
+  return NextResponse.json({ revalidated: true, entityId, now: Date.now() });
 }
