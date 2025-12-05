@@ -1,5 +1,5 @@
 import { getAllArticles, type Article } from "@/lib/api";
-import Image from "next/image";
+import { ContentfulImage } from "@/components/contentful-image";
 import Link from "next/link";
 
 export default async function Home() {
@@ -11,8 +11,8 @@ export default async function Home() {
         <Link key={article.sys.id} href={`/articles/${article.slug}`}>
           <article className="group mb-8 bg-white border border-black/5 overflow-hidden shadow-sm hover:shadow-xl hover:border-black/10 transition-all duration-300">
             <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">
-              <Image
-                src={article.articleImage?.url || "/placeholder.svg"}
+              <ContentfulImage
+                src={article.articleImage?.url || ""}
                 alt={article.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"

@@ -2,7 +2,7 @@ import { draftMode } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type Article, getAllArticles, getArticle } from "@/lib/api";
-import Image from "next/image";
+import { ContentfulImage } from "@/components/contentful-image";
 import { getFormattedDate } from "@/lib/utils";
 import { Markdown } from "@/lib/markdown";
 
@@ -56,8 +56,8 @@ export default async function KnowledgeArticlePage(props: {
         <p className="text-lg text-black/60 mb-12">By {authorName}</p>
 
         <div className="relative w-full aspect-[2/1] mb-12 overflow-hidden bg-black/5 border border-black/5 shadow-sm">
-          <Image
-            src={articleImage?.url || "/placeholder.svg"}
+          <ContentfulImage
+            src={articleImage?.url ?? ""}
             alt={title}
             fill
             className="object-cover"
@@ -126,8 +126,8 @@ async function SuggestedArticle({ currentSlug }: { currentSlug: string }) {
       >
         <div className="flex flex-col gap-6 p-8">
           <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">
-            <Image
-              src={articleImage?.url || "/placeholder.svg"}
+            <ContentfulImage
+              src={articleImage?.url ?? ""}
               alt={title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
