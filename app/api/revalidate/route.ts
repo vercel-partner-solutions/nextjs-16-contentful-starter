@@ -9,14 +9,15 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { entityId } = body;
+  const { sys } = body;
+  const { id } = sys;
 
-  if (!entityId) {
-    return NextResponse.json({ message: "Missing entityId" }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ message: "Missing id" }, { status: 400 });
   }
 
-  revalidateTag(entityId, "max");
-  console.log(`Revalidated entity: ${entityId}`);
+  revalidateTag(id, "max");
+  console.log(`Revalidated entity: ${id}`);
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
