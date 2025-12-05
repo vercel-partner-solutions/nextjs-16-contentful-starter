@@ -1,4 +1,5 @@
 import type { Document } from "@contentful/rich-text-types";
+import { cacheTag } from "next/cache";
 
 // Set a variable that contains all the fields needed for articles when a fetch for
 // content is performed
@@ -117,6 +118,7 @@ export async function getAllArticles(
   // return draft content for reviewing articles before they are live
   isDraftMode = false
 ) {
+  "use cache";
   const articles = await fetchGraphQL<ArticleCollectionResponse["data"]>(
     `query {
         knowledgeArticleCollection(where:{slug_exists: true}, order: date_DESC, limit: ${limit}, preview: ${
@@ -129,13 +131,18 @@ export async function getAllArticles(
       }`,
     isDraftMode
   );
-  return extractArticleEntries(articles);
+  const entries = extractArticleEntries(articles);
+  const allEntryIds = entries.map((entry) => entry.sys.id);
+  cacheTag(...allEntryIds, "articles");
+  return entries;
 }
 
 export async function getArticle(
   slug: string,
   isDraftMode = false
 ): Promise<Article | undefined> {
+  "use cache";
+
   const article = await fetchGraphQL<ArticleCollectionResponse["data"]>(
     `query {
         knowledgeArticleCollection(where:{slug: "${slug}"}, limit: 1, preview: ${
@@ -148,5 +155,8 @@ export async function getArticle(
       }`,
     isDraftMode
   );
-  return extractArticleEntries(article)[0];
+
+  const entry = extractArticleEntries(article)[0];
+  cacheTag(entry.sys.id, "articles");
+  return entry;
 }
