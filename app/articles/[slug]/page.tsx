@@ -1,15 +1,16 @@
-import { draftMode } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { type Article, getAllArticles, getArticle } from "@/lib/api";
-import { ContentfulImage } from "@/components/contentful-image";
+import { getArticleBySlug, getArticles } from "@/lib/contentful/queries";
 import { getFormattedDate } from "@/lib/utils";
 import { Markdown } from "@/lib/markdown";
+import { ContentfulImage } from "@/components/contentful-image";
+import { draftMode } from "next/headers";
+import { Suspense } from "react";
 
 export async function generateStaticParams() {
-  const allArticles = await getAllArticles();
+  const allArticles = await getArticles();
 
-  return allArticles.map((article: Article) => ({
+  return allArticles.map((article) => ({
     slug: article.slug,
   }));
 }
@@ -17,71 +18,15 @@ export async function generateStaticParams() {
 export default async function KnowledgeArticlePage(props: {
   params: Promise<{ slug: string }>;
 }) {
-  const params = await props.params;
-  const { isEnabled } = await draftMode();
-  const article = await getArticle(params.slug, isEnabled);
-
-  if (!article) {
-    notFound();
-  }
-
-  const {
-    title,
-    categoryName,
-    authorName,
-    date,
-    summary,
-    details,
-    articleImage,
-    slug,
-  } = article;
-  const formattedDate = getFormattedDate(date);
-
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
-      <article>
-        <div className="flex items-center gap-4 mb-8">
-          <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-black text-white">
-            {categoryName}
-          </span>
-          {formattedDate && (
-            <time className="text-sm text-black/50">{formattedDate}</time>
-          )}
-        </div>
+      <Suspense>
+        <ArticleContent params={props.params} />
+      </Suspense>
 
-        <h1 className="text-5xl font-semibold text-black mb-6 text-balance leading-tight">
-          {title}
-        </h1>
-
-        <p className="text-lg text-black/60 mb-12">By {authorName}</p>
-
-        <div className="relative w-full aspect-[2/1] mb-12 overflow-hidden bg-black/5 border border-black/5 shadow-sm">
-          <ContentfulImage
-            src={articleImage?.url ?? ""}
-            alt={title}
-            fill
-            className="object-cover"
-          />
-        </div>
-
-        <div className="mb-12 pb-12 border-b border-black/10">
-          <p className="text-xl text-black/80 leading-relaxed text-pretty font-medium">
-            {summary}
-          </p>
-        </div>
-
-        <div
-          className="max-w-none"
-          style={{
-            color: "rgb(0 0 0 / 0.8)",
-          }}
-        >
-          <Markdown content={details} />
-        </div>
-      </article>
-
-      <SuggestedArticle currentSlug={slug} />
-
+      <Suspense>
+        <SuggestedArticle params={props.params} />
+      </Suspense>
       <div className="mt-16 pt-12 border-t border-black/10">
         <Link
           href="/"
@@ -97,17 +42,82 @@ export default async function KnowledgeArticlePage(props: {
   );
 }
 
-async function SuggestedArticle({ currentSlug }: { currentSlug: string }) {
-  const allArticles = await getAllArticles();
+async function ArticleContent(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
+  const isDraft = (await draftMode()).isEnabled;
+  const article = await getArticleBySlug(params.slug, isDraft);
+
+  if (!article) {
+    notFound();
+  }
+
+  const {
+    title,
+    categoryName,
+    authorName,
+    date,
+    summary,
+    details,
+    articleImage,
+  } = article;
+
+  const formattedDate = getFormattedDate(date);
+  return (
+    <article>
+      <div className="flex items-center gap-4 mb-8">
+        <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-black text-white">
+          {categoryName}
+        </span>
+        {formattedDate && (
+          <time className="text-sm text-black/50">{formattedDate}</time>
+        )}
+      </div>
+
+      <h1 className="text-5xl font-semibold text-black mb-6 text-balance leading-tight">
+        {title}
+      </h1>
+
+      <p className="text-lg text-black/60 mb-12">By {authorName}</p>
+
+      <div className="relative w-full aspect-[2/1] mb-12 overflow-hidden bg-black/5 border border-black/5 shadow-sm">
+        <ContentfulImage
+          src={articleImage?.fields?.file?.url ?? ""}
+          alt={title}
+          fill
+          className="object-cover"
+        />
+      </div>
+
+      <div className="mb-12 pb-12 border-b border-black/10">
+        <p className="text-xl text-black/80 leading-relaxed text-pretty font-medium">
+          {summary}
+        </p>
+      </div>
+
+      <div
+        className="max-w-none"
+        style={{
+          color: "rgb(0 0 0 / 0.8)",
+        }}
+      >
+        <Markdown content={details} />
+      </div>
+    </article>
+  );
+}
+
+async function SuggestedArticle(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
+  const currentSlug = params.slug;
+  const allArticles = await getArticles();
   const currentArticleIndex = allArticles.findIndex(
-    (a: Article) => a.slug === currentSlug
+    (a) => a.slug === currentSlug
   );
 
   if (currentArticleIndex === -1 || allArticles.length < 2) {
     return null;
   }
 
-  // Wrap around to the start if we're at the end
   const suggestedArticle =
     allArticles[(currentArticleIndex + 1) % allArticles.length];
 
@@ -127,7 +137,7 @@ async function SuggestedArticle({ currentSlug }: { currentSlug: string }) {
         <div className="flex flex-col gap-6 p-8">
           <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">
             <ContentfulImage
-              src={articleImage?.url ?? ""}
+              src={articleImage?.fields?.file?.url ?? ""}
               alt={title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"

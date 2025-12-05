@@ -1,18 +1,31 @@
-import { getAllArticles, type Article } from "@/lib/api";
+import { getArticles } from "@/lib/contentful/queries";
 import { ContentfulImage } from "@/components/contentful-image";
 import Link from "next/link";
+import { draftMode } from "next/headers";
+import { Suspense } from "react";
 
-export default async function Home() {
-  const articles = await getAllArticles();
-
+export default function Home() {
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
-      {articles.map((article: Article) => (
-        <Link key={article.sys.id} href={`/articles/${article.slug}`}>
+      <Suspense>
+        <Articles />
+      </Suspense>
+    </main>
+  );
+}
+
+async function Articles() {
+  const { isEnabled } = await draftMode();
+  const articles = await getArticles(undefined, isEnabled);
+
+  return (
+    <>
+      {articles.map((article) => (
+        <Link key={article.slug} href={`/articles/${article.slug}`}>
           <article className="group mb-8 bg-white border border-black/5 overflow-hidden shadow-sm hover:shadow-xl hover:border-black/10 transition-all duration-300">
             <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">
               <ContentfulImage
-                src={article.articleImage?.url || ""}
+                src={article.articleImage?.fields?.file?.url ?? ""}
                 alt={article.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -40,6 +53,6 @@ export default async function Home() {
           </article>
         </Link>
       ))}
-    </main>
+    </>
   );
 }

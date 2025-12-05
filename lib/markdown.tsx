@@ -2,51 +2,8 @@ import { ContentfulImage } from "@/components/contentful-image";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS, Document } from "@contentful/rich-text-types";
 
-interface Asset {
-  sys: {
-    id: string;
-  };
-  url: string;
-  description: string;
-}
-
-interface AssetLink {
-  block: Asset[];
-}
-
-interface Content {
-  json: Document;
-  links: {
-    assets: AssetLink;
-  };
-}
-
-function RichTextAsset({
-  id,
-  assets,
-}: {
-  id: string;
-  assets: Asset[] | undefined;
-}) {
-  const asset = assets?.find((asset) => asset.sys.id === id);
-
-  if (asset?.url) {
-    return (
-      <ContentfulImage
-        src={asset.url}
-        alt={asset.description || ""}
-        width={800}
-        height={400}
-        className="w-full h-auto"
-      />
-    );
-  }
-
-  return null;
-}
-
-export function Markdown({ content }: { content: Content }) {
-  return documentToReactComponents(content.json, {
+export function Markdown({ content }: { content: Document }) {
+  return documentToReactComponents(content, {
     renderNode: {
       [BLOCKS.PARAGRAPH]: (_node, children) => (
         <p className="mb-4">{children}</p>
@@ -70,9 +27,11 @@ export function Markdown({ content }: { content: Content }) {
         <h6 className="text-sm font-semibold mb-4">{children}</h6>
       ),
       [BLOCKS.EMBEDDED_ASSET]: (node) => (
-        <RichTextAsset
-          id={node.data.target.sys.id}
-          assets={content.links.assets.block}
+        <ContentfulImage
+          src={node.data.target.url}
+          alt={node.data.target.description}
+          width={node.data.target.details.image.width}
+          height={node.data.target.details.image.height}
         />
       ),
     },

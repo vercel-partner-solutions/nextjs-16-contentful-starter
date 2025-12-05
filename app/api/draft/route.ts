@@ -1,21 +1,21 @@
 import { draftMode } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get("secret");
-  const slug = searchParams.get("slug");
+  const redirectTo = searchParams.get("redirectTo");
 
-  if (!secret || !slug) {
-    console.error("Missing parameters");
-    return new Response("Missing parameters", { status: 400 });
+  if (!secret) {
+    console.error("Missing Draft Mode secret parameter");
+    notFound();
   }
 
   if (secret !== process.env.CONTENTFUL_PREVIEW_SECRET) {
     console.error("Invalid CONTENTFUL_PREVIEW_SECRET");
-    return new Response("Invalid token", { status: 401 });
+    notFound();
   }
 
   (await draftMode()).enable();
-  redirect(`/articles/${slug}`);
+  redirect(redirectTo || "/");
 }
