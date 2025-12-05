@@ -17,7 +17,7 @@ export const getArticleBySlug = async (slug: string, isDraft?: boolean) => {
   return extractArticleFields(entriesResult)?.[0];
 };
 
-export const getArticles = async (query?: ArticleQuery, isDraft?: boolean) => {
+export const getArticles = async (isDraft?: boolean, query?: ArticleQuery) => {
   "use cache";
   const client = getContentfulClient(isDraft);
   const entriesResult =

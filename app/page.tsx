@@ -16,7 +16,7 @@ export default function Home() {
 
 async function Articles() {
   const { isEnabled } = await draftMode();
-  const articles = await getArticles(undefined, isEnabled);
+  const articles = await getArticles(isEnabled);
 
   return (
     <>
