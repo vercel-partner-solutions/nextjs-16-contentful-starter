@@ -5,7 +5,6 @@ import { getFormattedDate } from "@/lib/utils";
 import { Markdown } from "@/lib/markdown";
 import { ContentfulImage } from "@/components/contentful-image";
 import { draftMode } from "next/headers";
-import { Suspense } from "react";
 
 export async function generateStaticParams() {
   const allArticles = await getAllArticles();
@@ -20,13 +19,8 @@ export default async function KnowledgeArticlePage(props: {
 }) {
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
-      <Suspense>
-        <ArticleContent params={props.params} />
-      </Suspense>
-
-      <Suspense>
-        <SuggestedArticle params={props.params} />
-      </Suspense>
+      <ArticleContent params={props.params} />
+      <SuggestedArticle params={props.params} />
       <div className="mt-16 pt-12 border-t border-black/10">
         <Link
           href="/"
@@ -44,8 +38,8 @@ export default async function KnowledgeArticlePage(props: {
 
 async function ArticleContent(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
-  const isDraft = (await draftMode()).isEnabled;
-  const article = await getArticle(params.slug, isDraft);
+  const { isEnabled } = await draftMode();
+  const article = await getArticle(params.slug, isEnabled);
 
   if (!article) {
     notFound();
