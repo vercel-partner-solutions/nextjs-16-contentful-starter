@@ -1,3 +1,5 @@
+import type { Document } from "@contentful/rich-text-types";
+
 // Set a variable that contains all the fields needed for articles when a fetch for
 // content is performed
 const ARTICLE_GRAPHQL_FIELDS = `
@@ -29,7 +31,57 @@ const ARTICLE_GRAPHQL_FIELDS = `
   }
 `;
 
-async function fetchGraphQL(query, preview = false) {
+export interface Asset {
+  sys: {
+    id: string;
+  };
+  url: string;
+  description: string;
+}
+
+export interface RichTextLinks {
+  assets: {
+    block: Asset[];
+  };
+}
+
+export interface RichText {
+  json: Document;
+  links: RichTextLinks;
+}
+
+export interface Article {
+  sys: {
+    id: string;
+  };
+  title: string;
+  slug: string;
+  summary: string;
+  details: RichText;
+  date: string;
+  authorName: string;
+  categoryName: string;
+  articleImage: {
+    url: string;
+  };
+}
+
+interface ContentfulCollection<T> {
+  items: T[];
+}
+
+interface FetchResponse<T> {
+  data: T;
+}
+
+type ArticleCollectionResponse = FetchResponse<{
+  knowledgeArticleCollection: ContentfulCollection<Article>;
+}>;
+
+async function fetchGraphQL<T>(
+  query: string,
+  preview = false
+): Promise<FetchResponse<T>> {
   return fetch(
     `https://graphql.contentful.com/content/v1/spaces/${process.env.CONTENTFUL_SPACE_ID}`,
     {
@@ -52,8 +104,10 @@ async function fetchGraphQL(query, preview = false) {
   ).then((response) => response.json());
 }
 
-function extractArticleEntries(fetchResponse) {
-  return fetchResponse?.data?.knowledgeArticleCollection?.items;
+function extractArticleEntries(
+  fetchResponse: ArticleCollectionResponse
+): Article[] {
+  return fetchResponse?.data?.knowledgeArticleCollection?.items ?? [];
 }
 
 export async function getAllArticles(
@@ -63,7 +117,7 @@ export async function getAllArticles(
   // return draft content for reviewing articles before they are live
   isDraftMode = false
 ) {
-  const articles = await fetchGraphQL(
+  const articles = await fetchGraphQL<ArticleCollectionResponse["data"]>(
     `query {
         knowledgeArticleCollection(where:{slug_exists: true}, order: date_DESC, limit: ${limit}, preview: ${
       isDraftMode ? "true" : "false"
@@ -79,10 +133,10 @@ export async function getAllArticles(
 }
 
 export async function getArticle(
-  slug,
+  slug: string,
   isDraftMode = false
-) {
-  const article = await fetchGraphQL(
+): Promise<Article | undefined> {
+  const article = await fetchGraphQL<ArticleCollectionResponse["data"]>(
     `query {
         knowledgeArticleCollection(where:{slug: "${slug}"}, limit: 1, preview: ${
       isDraftMode ? "true" : "false"
