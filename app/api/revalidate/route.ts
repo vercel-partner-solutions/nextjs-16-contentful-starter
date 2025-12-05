@@ -2,8 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const requestHeaders = new Headers(request.headers);
-  const secret = requestHeaders.get("x-vercel-reval-key");
+  const secret = request.headers.get("x-vercel-reval-key");
 
   if (secret !== process.env.CONTENTFUL_REVALIDATE_SECRET) {
     console.error("Invalid CONTENTFUL_REVALIDATE_SECRET secret");
@@ -11,6 +10,7 @@ export async function POST(request: Request) {
   }
 
   revalidateTag("articles", "max");
+  console.log(`Revalidated articles`);
 
-  return NextResponse.json({ revalidated: true, now: Date.now() });
+  return NextResponse.json({ success: true }, { status: 200 });
 }
