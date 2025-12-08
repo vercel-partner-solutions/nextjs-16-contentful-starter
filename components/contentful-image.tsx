@@ -10,21 +10,20 @@ const contentfulLoader: ImageLoader = ({
   return `${src}?w=${width}&q=${quality || 75}`;
 };
 
-export function ContentfulImage({
-  src,
-  alt,
-  width,
-  height,
-  ...props
-}: ImageProps) {
+type ContentfulImageProps = Omit<ImageProps, "src"> & {
+  src?: string;
+};
+
+export function ContentfulImage({ ...props }: ContentfulImageProps) {
+  if (!props.src) {
+    return null;
+  }
   return (
     <Image
       loader={contentfulLoader}
-      src={src || "/placeholder.svg"}
-      alt={alt}
-      width={width}
-      height={height}
       {...props}
+      alt={props.alt}
+      src={props.src}
     />
   );
 }

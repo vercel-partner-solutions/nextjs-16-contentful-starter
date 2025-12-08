@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getArticleBySlug, getArticles } from "@/lib/contentful/queries";
+import { getArticles } from "@/lib/contentful/queries";
 import { getFormattedDate } from "@/lib/utils";
 import { Markdown } from "@/lib/markdown";
 import { ContentfulImage } from "@/components/contentful-image";
@@ -45,9 +45,12 @@ export default async function KnowledgeArticlePage(props: {
 async function ArticleContent(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const isDraft = (await draftMode()).isEnabled;
-  const article = await getArticleBySlug(params.slug, isDraft);
+  const article = await getArticles(isDraft, {
+    "fields.slug": params.slug,
+    limit: 1,
+  });
 
-  if (!article) {
+  if (!article || article.length === 0) {
     notFound();
   }
 
@@ -59,7 +62,7 @@ async function ArticleContent(props: { params: Promise<{ slug: string }> }) {
     summary,
     details,
     articleImage,
-  } = article;
+  } = article[0];
 
   const formattedDate = getFormattedDate(date);
   return (
@@ -81,7 +84,7 @@ async function ArticleContent(props: { params: Promise<{ slug: string }> }) {
 
       <div className="relative w-full aspect-[2/1] mb-12 overflow-hidden bg-black/5 border border-black/5 shadow-sm">
         <ContentfulImage
-          src={articleImage?.fields?.file?.url ?? ""}
+          src={articleImage?.fields?.file?.url}
           alt={title}
           fill
           className="object-cover"
@@ -137,7 +140,7 @@ async function SuggestedArticle(props: { params: Promise<{ slug: string }> }) {
         <div className="flex flex-col gap-6 p-8">
           <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">
             <ContentfulImage
-              src={articleImage?.fields?.file?.url ?? ""}
+              src={articleImage?.fields?.file?.url}
               alt={title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"

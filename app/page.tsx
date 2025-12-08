@@ -25,7 +25,7 @@ async function Articles() {
           <article className="group mb-8 bg-white border border-black/5 overflow-hidden shadow-sm hover:shadow-xl hover:border-black/10 transition-all duration-300">
             <div className="relative w-full aspect-[2/1] overflow-hidden bg-black/5">
               <ContentfulImage
-                src={article.articleImage?.fields?.file?.url ?? ""}
+                src={article.articleImage?.fields?.file?.url}
                 alt={article.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
