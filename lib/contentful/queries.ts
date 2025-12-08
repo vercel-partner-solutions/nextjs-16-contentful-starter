@@ -12,6 +12,8 @@ export const getArticles = async (isDraft?: boolean, query?: ArticleQuery) => {
       ...query,
     });
   const entries = extractArticleFields(entriesResult);
+
+  // Cache using the sys.id. This ensures that if ANY article entry in the response is updated, the cache is invalidated.
   cacheTag(
     "articles",
     entriesResult?.items?.map((entry) => entry.sys?.id).join(",")
