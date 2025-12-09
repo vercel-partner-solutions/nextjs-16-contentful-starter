@@ -6,7 +6,7 @@ export async function POST(request: Request) {
 
   if (secret !== process.env.CONTENTFUL_REVALIDATE_SECRET) {
     console.error("Invalid CONTENTFUL_REVALIDATE_SECRET");
-    return NextResponse.json({ message: "Invalid secret" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json();
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const { id } = sys;
 
   if (!id) {
-    return NextResponse.json({ message: "Missing id" }, { status: 400 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   revalidateTag(id, "max");
