@@ -6,6 +6,10 @@ import { Markdown } from "@/lib/markdown";
 import { ContentfulImage } from "@/components/contentful-image";
 import { draftMode } from "next/headers";
 import { Suspense } from "react";
+import {
+  ArticleContentSkeleton,
+  SuggestedArticleSkeleton,
+} from "@/components/article-skeleton";
 
 export async function generateStaticParams() {
   const allArticles = await getArticles();
@@ -20,11 +24,11 @@ export default async function KnowledgeArticlePage(props: {
 }) {
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
-      <Suspense>
+      <Suspense fallback={<ArticleContentSkeleton />}>
         <ArticleContent params={props.params} />
       </Suspense>
 
-      <Suspense>
+      <Suspense fallback={<SuggestedArticleSkeleton />}>
         <SuggestedArticle params={props.params} />
       </Suspense>
       <div className="mt-16 pt-12 border-t border-black/10">
