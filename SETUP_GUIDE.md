@@ -814,11 +814,11 @@ const nextConfig = {
 export default nextConfig;
 ```
 
-When `cacheComponents` is enabled, all routes are treated as dynamic by default. The `"use cache"` directive we added to `getArticles` tells Next.js to cache the function's return value and reuse it across requests.
+When `cacheComponents` is enabled, all routes are treated as dynamic by default. The `"use cache"` directive tells Next.js to cache the function's return value and reuse it across requests.
 
 ### Understanding Cache Tags
 
-One of the major benefits of Next.js 16 is that we can define cache tags **after** we fetch content. In `lib/contentful/queries.ts`, we tag the cache with the actual article IDs from the response:
+One of the major benefits of Next.js 16 is that we can define cache tags **after** we fetch content. We tag the cache with the actual article IDs from the response:
 
 ```typescript
 cacheTag(
