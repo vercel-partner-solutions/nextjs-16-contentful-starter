@@ -1,5 +1,6 @@
 import { draftMode } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -8,12 +9,12 @@ export async function GET(request: Request) {
 
   if (!secret) {
     console.error("Missing Draft Mode secret parameter");
-    notFound();
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   if (secret !== process.env.CONTENTFUL_PREVIEW_SECRET) {
     console.error("Invalid CONTENTFUL_PREVIEW_SECRET");
-    notFound();
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   (await draftMode()).enable();

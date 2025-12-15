@@ -6,11 +6,19 @@ export async function POST(request: Request) {
 
   if (secret !== process.env.CONTENTFUL_REVALIDATE_SECRET) {
     console.error("Invalid CONTENTFUL_REVALIDATE_SECRET");
-    return NextResponse.json({ message: "Invalid secret" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  revalidateTag("articles", "max");
-  console.log(`Revalidated articles`);
+  const body = await request.json();
+  const { sys } = body;
+  const { id } = sys;
+
+  if (!id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  revalidateTag(id, "max");
+  console.log(`Revalidated entity: ${id}`);
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
