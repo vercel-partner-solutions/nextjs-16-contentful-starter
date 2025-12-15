@@ -7,6 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "Knowledge Articles",
   description: "Browse our knowledge base articles",
+    generator: 'v0.app'
 };
 
 export default function RootLayout({
