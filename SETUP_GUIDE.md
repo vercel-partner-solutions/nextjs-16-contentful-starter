@@ -227,10 +227,10 @@ Create `lib/contentful/queries.ts` for the Contentful API queries:
 import { getContentfulClient } from "./client";
 import { ArticleQuery, ArticleSkeleton, CONTENT_TYPE_IDS } from "./types";
 import { extractArticleFields } from "./utils";
-import { cacheTag } from "next/cache";
+import { cacheTag } from "next/cache"; // <-- Add this import
 
 export const getArticles = async (isDraft?: boolean, query?: ArticleQuery) => {
-  "use cache";
+  "use cache"; // <-- Add this directive
   const client = getContentfulClient(isDraft);
   const entriesResult =
     await client.withoutUnresolvableLinks.getEntries<ArticleSkeleton>({
@@ -239,8 +239,7 @@ export const getArticles = async (isDraft?: boolean, query?: ArticleQuery) => {
     });
   const entries = extractArticleFields(entriesResult);
 
-  // Cache using the sys.id. This ensures that if ANY article entry in the
-  // response is updated, the cache is invalidated.
+  // <-- Add cache tags using the article IDs from the response
   cacheTag(
     "articles",
     entriesResult?.items?.map((entry) => entry.sys?.id).join(",")
