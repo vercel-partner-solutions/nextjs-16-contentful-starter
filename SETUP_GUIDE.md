@@ -227,10 +227,8 @@ Create `lib/contentful/queries.ts` for the Contentful API queries:
 import { getContentfulClient } from "./client";
 import { ArticleQuery, ArticleSkeleton, CONTENT_TYPE_IDS } from "./types";
 import { extractArticleFields } from "./utils";
-import { cacheTag } from "next/cache";
 
 export const getArticles = async (isDraft?: boolean, query?: ArticleQuery) => {
-  "use cache";
   const client = getContentfulClient(isDraft);
   const entriesResult =
     await client.withoutUnresolvableLinks.getEntries<ArticleSkeleton>({
@@ -239,15 +237,9 @@ export const getArticles = async (isDraft?: boolean, query?: ArticleQuery) => {
     });
   const entries = extractArticleFields(entriesResult);
 
-  cacheTag(
-    "articles",
-    entriesResult?.items?.map((entry) => entry.sys?.id).join(",")
-  );
   return entries;
 };
 ```
-
-The `"use cache"` directive at the top of the function tells Next.js to cache its return value. The `cacheTag()` call registers tags that identify this cached data - we tag it with `"articles"` and also the specific article IDs from the response. When content changes in Contentful, we can invalidate by these tags to refresh only the affected data.
 
 ### Create General Utilities
 
