@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const { id } = sys;
 
   if (!id) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ message: "Bad Request" }, { status: 400 });
   }
 
   revalidateTag(id, "max");
