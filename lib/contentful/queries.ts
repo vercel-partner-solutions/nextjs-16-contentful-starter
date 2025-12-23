@@ -1,10 +1,8 @@
 import { getContentfulClient } from "./client";
 import { ArticleQuery, ArticleSkeleton, CONTENT_TYPE_IDS } from "./types";
 import { extractArticleFields } from "./utils";
-import { cacheTag } from "next/cache";
 
 export const getArticles = async (isDraft?: boolean, query?: ArticleQuery) => {
-  "use cache";
   const client = getContentfulClient(isDraft);
   const entriesResult =
     await client.withoutUnresolvableLinks.getEntries<ArticleSkeleton>({
@@ -13,10 +11,5 @@ export const getArticles = async (isDraft?: boolean, query?: ArticleQuery) => {
     });
   const entries = extractArticleFields(entriesResult);
 
-  // Cache using the sys.id. This ensures that if ANY article entry in the response is updated, the cache is invalidated.
-  cacheTag(
-    "articles",
-    entriesResult?.items?.map((entry) => entry.sys?.id).join(",")
-  );
   return entries;
 };
